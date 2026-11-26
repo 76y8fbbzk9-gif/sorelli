@@ -12,6 +12,9 @@ create table if not exists public.wishes (
 
 alter table public.wishes enable row level security;
 
+-- Newer Supabase projects don't expose new tables to the app's key automatically.
+grant select, insert, update on public.wishes to anon;
+
 -- Anyone with the link can read, add and edit wishlists. Nobody can delete rows through the app.
 drop policy if exists "wishes read"   on public.wishes;
 drop policy if exists "wishes insert" on public.wishes;
