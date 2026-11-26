@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#d0102a">
+<meta name="description" content="Sorelli family Secret Santa: who gifts whom, and everyone's wishlists.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Secret Santa">
+
+<title>Sorelli Secret Santa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lobster&family=Nunito:wght@400;600;800&display=swap">
+<style>
+/* VOICE: family Christmas, warm, loud, a bit silly ("mandatory").
+   IDEA: a candy-striped gift-wrap sheet with paper gift tags pinned on it.
+   PICTURE: the big red wordmark; its year opens a fan of year tags.
+   COLOUR and TYPE: orange ground, candy-cane red/white stripes at 20%, Santa red #d0102a, cream tags; Lobster + Nunito.
+   LAYOUT: one centred column; logo + year fan, six tags, reveal panel, wishlist band below. */
+:root{color-scheme:light;--org:#f08a24;--red:#d0102a;--deep:#8e0a1c;--tag:#fff8ec;--ink:#2a1208;--muted:#6b4630;--green:#1f6b3a}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--org);color:var(--ink);font:16px/1.55 Nunito,system-ui,sans-serif;overflow-x:clip;min-height:100vh;position:relative}
+body::before{content:"";position:fixed;inset:0;opacity:.2;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(45deg,#fff 0 22px,var(--red) 22px 44px)}
+main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:calc(clamp(24px,5vw,56px) + env(safe-area-inset-top)) max(4vw,16px,env(safe-area-inset-right)) calc(64px + env(safe-area-inset-bottom))}
+.install{font:inherit;font-weight:800;font-size:15px;color:var(--red);background:var(--tag);border:0;border-radius:999px;padding:10px 18px;min-height:44px;cursor:pointer;box-shadow:0 3px 0 rgba(90,30,0,.25);margin-top:12px}
+.install[hidden],.ioshint[hidden]{display:none}
+.ioshint{font-size:14px;font-weight:600;margin:10px auto 0;max-width:420px}
+header{text-align:center;margin-bottom:clamp(24px,4vw,40px)}
+.logo{font-family:Lobster,cursive;font-weight:400;color:var(--red);line-height:1;margin:0;
+  text-shadow:0 3px 0 #fff,0 -3px 0 #fff,3px 0 0 #fff,-3px 0 0 #fff,3px 3px 0 #fff,-3px -3px 0 #fff,3px -3px 0 #fff,-3px 3px 0 #fff,0 10px 0 rgba(120,20,0,.25)}
+.logo .a{display:block;font-size:clamp(64px,15vw,150px)}
+.logo .b{display:block;font-size:clamp(32px,6.5vw,64px);margin-top:.15em}
+#yearBtn{font:inherit;color:inherit;text-shadow:inherit;background:none;border:0;padding:0 .05em;cursor:pointer;line-height:1.05;position:relative;z-index:2}
+.yearwrap{position:relative;display:inline-block}
+.mandatory{display:inline-block;margin-top:14px;font-size:13px;font-weight:800;color:#fff;background:var(--red);border-radius:999px;padding:3px 12px;transform:rotate(-2deg)}
+.fy{position:absolute;left:50%;top:50%;z-index:6;font:inherit;font-size:.62em;color:var(--red);text-shadow:0 2px 0 #fff,0 -2px 0 #fff,2px 0 0 #fff,-2px 0 0 #fff,2px 2px 0 #fff,-2px -2px 0 #fff,2px -2px 0 #fff,-2px 2px 0 #fff,0 5px 8px rgba(90,20,0,.35);background:none;border:0;padding:.05em .25em;cursor:pointer;line-height:1.05;white-space:nowrap;
+  opacity:0;pointer-events:none;transform:translate(-50%,-50%) scale(.3) rotate(0deg);
+  transition:transform .42s cubic-bezier(.25,1.55,.45,1),opacity .2s;transition-delay:var(--d,0s)}
+.fy[hidden]{display:none}
+.yearwrap.open .fy{opacity:1;pointer-events:auto}
+.yearwrap.open .fy.up{transform:translate(calc(-50% + .35em),calc(-50% - 1.5em)) rotate(-7deg)}
+.yearwrap.open .fy.down{transform:translate(calc(-50% + .35em),calc(-50% + 1.5em)) rotate(7deg)}
+.yearwrap.open .fy.up:hover{transform:translate(calc(-50% + .35em),calc(-50% - 1.5em)) rotate(-7deg) scale(1.08)}
+.yearwrap.open .fy.down:hover{transform:translate(calc(-50% + .35em),calc(-50% + 1.5em)) rotate(7deg) scale(1.08)}
+.yearwrap.open #yearBtn{opacity:.95}
+h2{font-family:Lobster,cursive;font-weight:400;font-size:clamp(32px,5vw,44px);color:#fff;text-align:center;margin:0 0 6px;text-shadow:0 2px 0 var(--deep)}
+.hint{text-align:center;margin:0 0 18px;color:var(--ink);font-weight:600}
+.badge{display:inline-block;font-size:13px;font-weight:800;border-radius:999px;padding:2px 10px;margin-left:6px;vertical-align:middle;background:#fff;color:var(--deep)}
+.tags{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px}
+.tag{font:inherit;font-weight:800;font-size:20px;color:var(--ink);background:var(--tag);border:0;border-radius:10px;min-height:64px;padding:14px 10px 12px 26px;cursor:pointer;position:relative;text-align:center;box-shadow:0 4px 0 rgba(90,30,0,.25);transition:transform .15s}
+.tag::before{content:"";position:absolute;left:10px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:var(--org);box-shadow:inset 0 0 0 2px rgba(0,0,0,.15)}
+.tag:hover{transform:translateY(-2px) rotate(-1deg)}
+.tag:focus-visible,button:focus-visible,textarea:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.tag[aria-pressed=true]{background:var(--red);color:#fff}
+.tag[aria-pressed=true]::before{background:#fff}
+.small .tag{font-size:16px;min-height:52px;font-weight:700}
+.panel{margin-top:22px;background:var(--tag);border-radius:18px;padding:clamp(18px,3vw,28px);box-shadow:0 6px 0 rgba(90,30,0,.25);border:4px dashed var(--red)}
+.panel[hidden]{display:none}
+.panel h3{margin:0 0 14px;font-size:22px;font-weight:800;color:var(--deep)}
+.gifts{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.gifts li{background:#fff;border-radius:12px;padding:14px 16px;border:2px solid #f3d9bd;display:flex;flex-direction:column;gap:6px}
+.gifts .n{font-size:20px;font-weight:800}
+.link{font:inherit;font-weight:700;color:var(--red);background:none;border:0;padding:0;cursor:pointer;text-align:start;text-decoration:underline;text-underline-offset:3px;min-height:28px}
+.note{margin:14px 0 0;color:var(--muted);font-size:14px}
+.wishband{margin-top:clamp(40px,6vw,64px);text-align:center}
+.wishbtn{font-family:Lobster,cursive;font-size:clamp(36px,6vw,52px);color:#fff;background:var(--red);border:0;border-radius:18px;padding:6px 34px 12px;cursor:pointer;box-shadow:0 6px 0 var(--deep);min-height:44px}
+.wishbtn[aria-expanded=true]{transform:translateY(3px);box-shadow:0 3px 0 var(--deep)}
+#wishArea{margin-top:22px;text-align:left}
+#wishArea[hidden]{display:none}
+.sub{font-weight:800;color:#fff;text-align:center;margin:22px 0 10px;text-shadow:0 1px 0 var(--deep)}
+.budget{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.col{background:#fff;border-radius:12px;border:2px solid #f3d9bd;padding:12px;display:flex;flex-direction:column;gap:8px}
+.col h4{margin:0;font-size:17px;font-weight:800}
+.col h4 span{display:block;font-size:13px;font-weight:600;color:var(--muted)}
+.col.low h4{color:var(--green)}.col.mid h4{color:#b45f06}.col.high h4{color:var(--red)}
+textarea{font:16px/1.5 Nunito,system-ui,sans-serif;width:100%;min-height:170px;resize:vertical;border:2px solid #ead2b6;border-radius:10px;padding:10px;background:#fffdf8;color:var(--ink)}
+textarea:disabled{background:#f4eee6;color:var(--muted)}
+.links{display:flex;flex-wrap:wrap;gap:6px}
+.links a{font-size:13px;font-weight:700;color:#fff;background:var(--red);border-radius:999px;padding:3px 10px;text-decoration:none;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status{font-size:13px;font-weight:700;color:var(--muted);min-height:20px;margin:10px 0 0}
+.status.err{color:var(--red)}
+footer{text-align:center;margin-top:40px;font-weight:700;color:var(--ink)}
+@media(max-width:700px){.budget{grid-template-columns:minmax(0,1fr)}textarea{min-height:120px}}
+@media(prefers-reduced-motion:reduce){.tag,.wishbtn,.fy{transition:none}.tag:hover{transform:none}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 class="logo"><span class="a">Sorelli</span><span class="b">Secret Santa <span class="yearwrap" id="yearWrap"><button class="fy up" id="prevY" type="button" style="--d:0s">2025</button><button id="yearBtn" type="button" aria-expanded="false" aria-label="Change year">2026</button><button class="fy down" id="nextY" type="button" style="--d:.06s">2027</button></span></span></h1>
+    <span class="mandatory">mandatory</span>
+  </header>
+
+  <section aria-labelledby="whoH">
+    <h2 id="whoH">Chi regala a chi?</h2>
+    <p class="hint" id="yearHint"></p>
+    <div class="tags" id="giverTags"></div>
+    <div class="panel" id="giftPanel" hidden aria-live="polite">
+      <h3 id="giftTitle"></h3>
+      <ul class="gifts" id="giftList"></ul>
+      <p class="note">NB: Per i bambini si possono fare regali da parte di tutti.</p>
+    </div>
+  </section>
+
+  <section class="wishband">
+    <button class="wishbtn" id="wishBtn" aria-expanded="false" aria-controls="wishArea">Wishlist</button>
+    <div id="wishArea" hidden>
+      <div class="tags" id="wishMain"></div>
+      <p class="sub">Everyone else on the list</p>
+      <div class="tags small" id="wishOthers"></div>
+      <div class="panel" id="wishPanel" hidden>
+        <h3 id="wishTitle"></h3>
+        <div class="budget" id="budget"></div>
+        <p class="status" id="status" role="status"></p>
+      </div>
+    </div>
+  </section>
+
+<footer>Buon Natale!<br><button class="install" id="installBtn" type="button" hidden>Install the app</button><p class="ioshint" id="iosHint" hidden>On iPhone: tap Share, then “Add to Home Screen”.</p></footer>
+</main>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+{
+const FAMILY = ["Gigi","Noe","Jack","Sele","Lavi","Zeli"];
+const SIBLINGS = ["Gigi","Jack","Lavi","Noe","Sele","Zeli"];
+const ADULTS = ["Manu","Steve","Zio Sandro / Maria Grazia","Marcello","Brad","Nicoletta","Francesca","Zia Luisa","Zia Maurizia / Gianni","Danilo","Angelo","Elena"];
+const PARTNERS = [["Zeli","Steve"],["Lavi","Angelo"],["Noe","Brad"]];
+const HISTORY = {"2016": {"Zeli": ["Lavi", "Francesca", "Zia Luisa"], "Lavi": ["Jack", "Angelo", "Elena"], "Sele": ["Gigi", "Zio Sandro / Maria Grazia", "Marcello"], "Jack": ["Sele", "Matt", "Nicoletta"], "Noe": ["Zeli", "Manu", "Steve"], "Gigi": ["Noe", "Zia Maurizia / Gianni", "Danilo"]}, "2017": {"Gigi": ["Zeli", "Zio Sandro / Maria Grazia", "Marcello"], "Jack": ["Gigi", "Zia Maurizia / Gianni", "Danilo"], "Lavi": ["Noe", "Francesca", "Zia Luisa"], "Noe": ["Lavi", "Nonno Emo", "Nicoletta"], "Sele": ["Jack", "Nonna Ondina", "Elena"], "Zeli": ["Sele", "Manu", "Zia Pina"]}, "2018": {"Gigi": ["Sele", "Francesca", "Zia Luisa"], "Jack": ["Noe", "Nonna Ondina", "Elena"], "Lavi": ["Zeli", "Zia Maurizia / Gianni", "Danilo"], "Noe": ["Gigi", "Zio Sandro / Maria Grazia", "Marcello"], "Sele": ["Lavi", "Manu", "Zia Pina"], "Zeli": ["Jack", "Nonno Emo", "Nicoletta"]}, "2019": {"Gigi": ["Jack", "Nonno Emo", "Nicoletta"], "Jack": ["Lavi", "Manu", "Zia Pina"], "Lavi": ["Gigi", "Zio Sandro / Maria Grazia", "Marcello"], "Noe": ["Sele", "Nonna Ondina", "Elena"], "Sele": ["Zeli", "Francesca", "Zia Luisa"], "Zeli": ["Noe", "Zia Maurizia / Gianni", "Danilo"]}, "2020": {"Gigi": ["Lavi", "Angelo", "Elena"], "Jack": ["Zeli", "Francesca", "Zia Luisa"], "Lavi": ["Sele", "Manu", "Matt"], "Noe": ["Jack", "Zia Maurizia / Gianni", "Danilo"], "Sele": ["Noe", "Steve", "Nicoletta"], "Zeli": ["Gigi", "Zio Sandro / Maria Grazia", "Marcello"]}, "2021": {"Gigi": ["Noe", "Manu", "Steve"], "Jack": ["Sele", "Zio Sandro / Maria Grazia", "Marcello"], "Lavi": ["Jack", "Matt", "Nicoletta"], "Noe": ["Zeli", "Francesca", "Zia Luisa"], "Sele": ["Gigi", "Zia Maurizia / Gianni", "Danilo"], "Zeli": ["Lavi", "Angelo", "Elena"]}, "2022": {"Gigi": ["Zeli", "Zia Maurizia / Gianni", "Danilo"], "Jack": ["Gigi", "Matt", "Nicoletta"], "Lavi": ["Noe", "Marcello", "Elena"], "Noe": ["Lavi", "Manu", "Steve"], "Sele": ["Jack", "Zio Sandro / Maria Grazia", "Angelo"], "Zeli": ["Sele", "Francesca", "Zia Luisa"]}, "2023": {"Gigi": ["Sele", "Zio Sandro / Maria Grazia", "Marcello"], "Jack": ["Noe", "Zia Maurizia / Gianni", "Danilo"], "Lavi": ["Zeli", "Francesca", "Zia Luisa"], "Noe": ["Gigi", "Matt", "Nicoletta"], "Sele": ["Lavi", "Elena", "Steve"], "Zeli": ["Jack", "Angelo", "Manu"]}, "2024": {"Gigi": ["Jack", "Francesca", "Zia Luisa"], "Jack": ["Lavi", "Angelo", "Steve"], "Lavi": ["Gigi", "Zia Maurizia / Gianni", "Danilo"], "Noe": ["Sele", "Zio Sandro / Maria Grazia", "Marcello"], "Sele": ["Zeli", "Manu", "Elena"], "Zeli": ["Noe", "Matt", "Nicoletta"]}, "2025": {"Gigi": ["Lavi", "Angelo", "Elena"], "Jack": ["Zeli", "Francesca", "Zia Luisa"], "Lavi": ["Sele", "Zio Sandro / Maria Grazia", "Manu"], "Noe": ["Jack", "Matt", "Danilo"], "Sele": ["Noe", "Nicoletta", "Steve"], "Zeli": ["Gigi", "Zia Maurizia / Gianni", "Marcello"]}, "2026": {"Gigi": ["Noe", "Manu", "Steve"], "Jack": ["Sele", "Zio Sandro / Maria Grazia", "Marcello"], "Lavi": ["Jack", "Brad", "Nicoletta"], "Noe": ["Zeli", "Francesca", "Zia Luisa"], "Sele": ["Gigi", "Zia Maurizia / Gianni", "Danilo"], "Zeli": ["Lavi", "Angelo", "Elena"]}};
+const FIRST = 2016, LAST_REAL = 2026, LAST = 2040;
+// Secret Santa generator: min-cost assignment with seeded noise.
+function makeGen(cfg) {
+  const { siblings, adults, partners, history } = cfg;
+  const pool = [...siblings, ...adults];
+  const partnerOf = {};
+  for (const [a, b] of partners) { partnerOf[a] = b; partnerOf[b] = a; }
+  const elig = g => pool.filter(r => r !== g && r !== partnerOf[g]);
+
+  function rng(seed) {
+    return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  }
+
+  // Per giver: recipients still owed in the current cycle, and last year gifted to each.
+  function state(hist, g) {
+    const E = new Set(elig(g)); let covered = new Set(); const last = {};
+    for (const y of Object.keys(hist).map(Number).sort((a, b) => a - b)) {
+      for (const r of hist[y][g] || []) { last[r] = y; if (E.has(r)) covered.add(r); }
+      if ([...E].every(r => covered.has(r))) covered = new Set();
+    }
+    return { fresh: new Set([...E].filter(r => !covered.has(r))), last };
+  }
+
+  // Hungarian algorithm (square matrix, minimise).
+  function hungarian(a) {
+    const n = a.length, u = Array(n + 1).fill(0), v = Array(n + 1).fill(0), p = Array(n + 1).fill(0), way = Array(n + 1).fill(0);
+    for (let i = 1; i <= n; i++) {
+      p[0] = i; let j0 = 0; const minv = Array(n + 1).fill(Infinity), used = Array(n + 1).fill(false);
+      do {
+        used[j0] = true; const i0 = p[j0]; let d = Infinity, j1 = 0;
+        for (let j = 1; j <= n; j++) if (!used[j]) {
+          const c = a[i0 - 1][j - 1] - u[i0] - v[j];
+          if (c < minv[j]) { minv[j] = c; way[j] = j0; }
+          if (minv[j] < d) { d = minv[j]; j1 = j; }
+        }
+        for (let j = 0; j <= n; j++) if (used[j]) { u[p[j]] += d; v[j] -= d; } else minv[j] -= d;
+        j0 = j1;
+      } while (p[j0] !== 0);
+      do { const j1 = way[j0]; p[j0] = p[j1]; j0 = j1; } while (j0);
+    }
+    const res = Array(n); for (let j = 1; j <= n; j++) res[p[j] - 1] = j - 1; return res;
+  }
+
+  function draw(year, hist, variant = 0) {
+    const rand = rng(year * 1009 + variant * 7919);
+    const INF = 1e9, rows = [], cost = [];
+    for (const g of siblings) {
+      const { fresh, last } = state(hist, g), E = new Set(elig(g));
+      for (const kind of ["sib", "adult", "adult"]) {
+        rows.push(g);
+        cost.push(pool.map(r => {
+          if (!E.has(r)) return INF;
+          if ((kind === "sib") !== siblings.includes(r)) return INF;   // 1 sibling + 2 adults each
+          const noise = rand();
+          const ago = last[r] ? year - last[r] : 99;
+          if (fresh.has(r)) return noise + 5 * Math.max(0, 10 - ago);       // after a reset, still prefer people not seen recently
+          return 1000 + 100 * Math.max(0, 20 - ago) + noise;           // repeat only if forced; oldest first
+        }));
+      }
+    }
+    const pick = hungarian(cost), out = {};
+    let repeats = 0;
+    rows.forEach((g, i) => { (out[g] ||= []).push(pool[pick[i]]); if (cost[i][pick[i]] >= 1000) repeats++; });
+    if (cost.some((row, i) => row[pick[i]] >= INF)) throw new Error("no valid draw");
+    return { list: out, repeats };
+  }
+
+  // Chain: each future year uses real history plus the generated years before it.
+  function future(fromYear, toYear) {
+    const hist = { ...history }, res = {};
+    for (let y = fromYear; y <= toYear; y++) { const d = draw(y, hist); res[y] = d; hist[y] = d.list; }
+    return res;
+  }
+  return { draw, future, state, elig };
+}
+
+
+const GEN = makeGen({siblings: SIBLINGS, adults: ADULTS, partners: PARTNERS, history: HISTORY});
+const cache = {...HISTORY};
+function listFor(y){
+  if (cache[y]) return cache[y];
+  for (let k = LAST_REAL + 1; k <= y; k++) if (!cache[k]) cache[k] = GEN.draw(k, Object.fromEntries(Object.entries(cache).filter(([yy]) => +yy < k))).list;
+  return cache[y];
+}
+
+const TIERS = [{k:"low",t:"Low budget",s:"less than 10€"},{k:"mid",t:"Medium budget",s:"up to 50€"},{k:"high",t:"High budget",s:"€50+"}];
+const slug = n => n.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $ = id => document.getElementById(id);
+const tagBtns = (names, attr) => names.map(n => `<button class="tag" type="button" aria-pressed="false" ${attr}="${esc(n)}">${esc(n)}</button>`).join("");
+const press = (sel, name, attr) => document.querySelectorAll(sel).forEach(b => b.setAttribute("aria-pressed", b.getAttribute(attr) === name ? "true" : "false"));
+const NOW = new Date().getFullYear();
+const kind = y => y > LAST_REAL ? "draft" : y < NOW ? "archive" : "";
+
+let year = Math.min(Math.max(NOW, FIRST), LAST);
+let giver = null, current = null;
+
+/* --- Year fan: previous year above, next year below --- */
+const fanOpen = () => $("yearWrap").classList.contains("open");
+function layoutFan(){
+  $("prevY").textContent = year - 1; $("prevY").hidden = year <= FIRST;
+  $("nextY").textContent = year + 1; $("nextY").hidden = year >= LAST;
+  $("prevY").setAttribute("aria-label", "Go to " + (year - 1));
+  $("nextY").setAttribute("aria-label", "Go to " + (year + 1));
+}
+function openFan(open){
+  const w = $("yearWrap");
+  $("yearBtn").setAttribute("aria-expanded", open ? "true" : "false");
+  w.classList.remove("open");
+  if (open) { layoutFan(); void w.offsetWidth; requestAnimationFrame(() => w.classList.add("open")); }
+}
+$("yearBtn").addEventListener("click", e => { e.stopPropagation(); openFan(!fanOpen()); });
+$("prevY").addEventListener("click", e => { e.stopPropagation(); setYear(year - 1); openFan(true); });
+$("nextY").addEventListener("click", e => { e.stopPropagation(); setYear(year + 1); openFan(true); });
+document.addEventListener("click", e => { if (fanOpen() && !e.target.closest("#yearWrap")) openFan(false); });
+document.addEventListener("keydown", e => {
+  if (!fanOpen()) return;
+  if (e.key === "Escape") { openFan(false); $("yearBtn").focus(); }
+  if (e.key === "ArrowUp" && year > FIRST) { e.preventDefault(); setYear(year - 1); openFan(true); }
+  if (e.key === "ArrowDown" && year < LAST) { e.preventDefault(); setYear(year + 1); openFan(true); }
+});
+
+function setYear(y, fromHash){
+  y = Math.min(Math.max(y, FIRST), LAST);
+  year = y;
+  $("yearBtn").textContent = y;
+  document.title = "Sorelli Secret Santa " + y;
+  const k = kind(y);
+  $("yearHint").innerHTML = k === "draft"
+    ? `Tap your name to see who you'd gift in ${y}. <span class="badge">draft — generated, not final</span>`
+    : k === "archive" ? `Who gifted whom in ${y}. <span class="badge">archivio</span>` : "Tap your name to see who you're gifting this year.";
+  const L = listFor(y);
+  const others = [...new Set(Object.values(L).flat())].filter(n => !FAMILY.includes(n));
+  $("giverTags").innerHTML = tagBtns(FAMILY, "data-giver");
+  $("wishMain").innerHTML = tagBtns(FAMILY, "data-wish");
+  $("wishOthers").innerHTML = tagBtns(others, "data-wish");
+  if (giver) showGiver(giver); else $("giftPanel").hidden = true;
+  if (current && (FAMILY.includes(current) || others.includes(current))) showWish(current); else { current = null; $("wishPanel").hidden = true; }
+  layoutFan();
+  if (!fromHash) { try { history.replaceState(null, "", y === Math.min(Math.max(NOW, FIRST), LAST) ? location.pathname + location.search : "#y" + y); } catch(e){} }
+}
+const fromHash = () => { const m = /^#y(\d{4})$/.exec(location.hash); return m ? +m[1] : null; };
+window.addEventListener("hashchange", () => { const h = fromHash(); if (h) setYear(h, true); });
+
+/* --- Who gifts whom --- */
+function showGiver(name){
+  giver = name;
+  press("[data-giver]", name, "data-giver");
+  const k = kind(year);
+  $("giftTitle").textContent = k === "archive" ? `In ${year}, ${name} gifted:` : k === "draft" ? `${name}'s draft list for ${year}:` : `${name}, this year you're gifting:`;
+  $("giftList").innerHTML = (listFor(year)[name] || []).map(r =>
+    `<li><span class="n">${esc(r)}</span><button class="link" type="button" data-jump="${esc(r)}">See wishlist →</button></li>`).join("");
+  $("giftPanel").hidden = false;
+}
+$("giverTags").addEventListener("click", e => { const b = e.target.closest("[data-giver]"); if (b) showGiver(b.dataset.giver); });
+$("giftList").addEventListener("click", e => {
+  const b = e.target.closest("[data-jump]"); if (!b) return;
+  openWish(true); showWish(b.dataset.jump);
+  $("wishPanel").scrollIntoView({behavior:"smooth", block:"start"});
+});
+
+/* --- Wishlist (one per person per year) --- */
+function openWish(open){ $("wishArea").hidden = !open; $("wishBtn").setAttribute("aria-expanded", open ? "true" : "false"); }
+$("wishBtn").addEventListener("click", () => openWish($("wishArea").hidden));
+
+const remote = {};
+let canWrite = false, dbRef = null, dbMsg = "Connecting…";
+const docId = (name, tier) => (year === 2026 ? "" : year + "__") + slug(name) + "__" + tier;
+
+function linksHtml(text){
+  const urls = (text.match(/https:\/\/[^\s<>"']+/g) || []).slice(0, 12);
+  return urls.map(u => { let label = u; try { label = new URL(u).hostname.replace(/^www\./,""); } catch(e){}
+    return `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>`; }).join("");
+}
+function showWish(name){
+  current = name;
+  press("[data-wish]", name, "data-wish");
+  $("wishTitle").textContent = `${name}'s wishlist ${year}`;
+  $("budget").innerHTML = TIERS.map(t => {
+    const id = docId(name, t.k);
+    return `<div class="col ${t.k}"><h4>${t.t}<span>${t.s}</span></h4>
+      <textarea id="ta-${id}" data-doc="${id}" aria-label="${t.t}" placeholder="Ideas, sizes, links…" ${dbRef && canWrite ? "" : "disabled"}></textarea>
+      <div class="links" id="ln-${id}"></div></div>`;
+  }).join("");
+  document.querySelectorAll("#budget textarea").forEach(ta => { ta.value = remote[ta.dataset.doc] || ""; $("ln-" + ta.dataset.doc).innerHTML = linksHtml(ta.value); });
+  $("wishPanel").hidden = false;
+  if (!dbRef) setStatus(dbMsg, dbMsg !== "Connecting…");
+}
+$("wishArea").addEventListener("click", e => { const b = e.target.closest("[data-wish]"); if (b) showWish(b.dataset.wish); });
+function setStatus(msg, err){ const s = $("status"); s.textContent = msg; s.className = "status" + (err ? " err" : ""); }
+
+const timers = {}, inFlight = {}, queued = {};
+async function save(id, text, name){
+  if (inFlight[id]) { queued[id] = text; return; }
+  inFlight[id] = true; setStatus("Saving…");
+  try {
+    const { error } = await dbRef.from("wishes").upsert({ id, text, name, updated_at: new Date().toISOString() });
+    if (error) throw error;
+    remote[id] = text; setStatus("All changes saved");
+  } catch (e) {
+    setStatus(navigator.onLine === false ? "You're offline — changes will save when you type again online." : "Couldn't save — try again in a moment.", true);
+  }
+  inFlight[id] = false;
+  if (queued[id] !== undefined && queued[id] !== remote[id]) { const q = queued[id]; delete queued[id]; save(id, q, name); }
+}
+$("budget").addEventListener("input", e => {
+  const ta = e.target.closest("textarea"); if (!ta || !dbRef || !canWrite) return;
+  const id = ta.dataset.doc, name = current;
+  $("ln-" + id).innerHTML = linksHtml(ta.value);
+  setStatus("Typing…");
+  clearTimeout(timers[id]);
+  timers[id] = setTimeout(() => { if (ta.value !== (remote[id] || "")) save(id, ta.value, name); else setStatus("All changes saved"); }, 700);
+});
+
+setYear(fromHash() || year, true);
+
+function applyRemote(){
+  document.querySelectorAll("#budget textarea").forEach(ta => {
+    ta.disabled = !canWrite;
+    const id = ta.dataset.doc, v = remote[id] || "";
+    if (document.activeElement !== ta && ta.value !== v) { ta.value = v; $("ln-" + id).innerHTML = linksHtml(v); }
+  });
+  if (current && !$("status").classList.contains("err")) setStatus("Saved automatically as you type");
+}
+
+(async () => {
+  const cfg = window.SS_CONFIG || {};
+  if (!window.supabase || !cfg.url || !cfg.anonKey || cfg.url.includes("YOUR-")) { dbMsg = "Wishlists aren't connected yet."; setStatus(dbMsg, true); return; }
+  const db = window.supabase.createClient(cfg.url, cfg.anonKey, { auth: { persistSession: false } });
+  const slow = setTimeout(() => setStatus("Wishlists can't be reached yet…", true), 10000);
+  const { data, error } = await db.from("wishes").select("id,text");
+  clearTimeout(slow);
+  if (error) { dbMsg = "Couldn't load wishlists. Reload the page."; setStatus(dbMsg, true); return; }
+  for (const r of data) remote[r.id] = typeof r.text === "string" ? r.text : "";
+  dbRef = db; canWrite = true; applyRemote();
+  db.channel("wishes-live")
+    .on("postgres_changes", { event: "*", schema: "public", table: "wishes" }, p => {
+      const r = p.new && p.new.id ? p.new : null;
+      if (r) remote[r.id] = typeof r.text === "string" ? r.text : "";
+      else if (p.old && p.old.id) delete remote[p.old.id];
+      applyRemote();
+    })
+    .subscribe();
+})();
+
+/* PWA: offline shell + install prompt */
+if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+let deferred = null;
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred = e; $("installBtn").hidden = false; });
+$("installBtn").addEventListener("click", async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice.catch(() => {}); deferred = null; $("installBtn").hidden = true; });
+const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !standalone) $("iosHint").hidden = false;
+}
+</script>
+</body>
+</html>

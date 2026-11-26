@@ -1,0 +1,15 @@
+{
+  "name": "Sorelli Secret Santa",
+  "short_name": "Secret Santa",
+  "description": "Who gifts whom, and everyone's wishlists.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f08a24",
+  "theme_color": "#d0102a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
